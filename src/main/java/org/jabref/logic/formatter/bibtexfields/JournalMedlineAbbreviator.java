@@ -6,7 +6,7 @@ import org.jabref.logic.journals.JournalAbbreviationLoader;
 import org.jabref.logic.journals.JournalAbbreviationPreferences;
 import org.jabref.model.cleanup.Formatter;
 
-public class JournalMedlineAbbreviator implements Formatter {
+public class JournalMedlineAbbreviator extends Formatter {
 
     private final JournalAbbreviationLoader repostioryLoader;
     private final JournalAbbreviationPreferences journalAbbreviationPreferences;
