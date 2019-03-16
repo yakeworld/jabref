@@ -2,20 +2,22 @@ package org.jabref.preferences;
 
 import java.util.List;
 
+import org.jabref.Globals;
+import org.jabref.logic.layout.LayoutFormatterPreferences;
+
 public class PreviewPreferences {
 
     private final List<String> previewCycle;
     private final int previewCyclePosition;
-    private final int previewPanelHeight;
+    private final Number previewPanelDividerPosition;
     private final boolean previewPanelEnabled;
     private final String previewStyle;
     private final String previewStyleDefault;
 
-
-    public PreviewPreferences(List<String> previewCycle, int previeCyclePosition, int previewPanelHeight, boolean previewPanelEnabled, String previewStyle, String previewStyleDefault) {
+    public PreviewPreferences(List<String> previewCycle, int previeCyclePosition, Number previewPanelDividerPosition, boolean previewPanelEnabled, String previewStyle, String previewStyleDefault) {
         this.previewCycle = previewCycle;
         this.previewCyclePosition = previeCyclePosition;
-        this.previewPanelHeight = previewPanelHeight;
+        this.previewPanelDividerPosition = previewPanelDividerPosition;
         this.previewPanelEnabled = previewPanelEnabled;
         this.previewStyle = previewStyle;
         this.previewStyleDefault = previewStyleDefault;
@@ -29,8 +31,8 @@ public class PreviewPreferences {
         return previewCyclePosition;
     }
 
-    public int getPreviewPanelHeight() {
-        return previewPanelHeight;
+    public Number getPreviewPanelDividerPosition() {
+        return previewPanelDividerPosition;
     }
 
     public boolean isPreviewPanelEnabled() {
@@ -49,19 +51,27 @@ public class PreviewPreferences {
         return new Builder(this);
     }
 
+    public String getCurrentPreviewStyle() {
+        return getPreviewCycle().get(getPreviewCyclePosition());
+    }
+
+    public LayoutFormatterPreferences getLayoutFormatterPreferences() {
+        return Globals.prefs.getLayoutFormatterPreferences(Globals.journalAbbreviationLoader);
+    }
+
     public static class Builder {
+
         private List<String> previewCycle;
         private int previeCyclePosition;
-        private int previewPanelHeight;
+        private Number previewPanelDividerPosition;
         private boolean previewPanelEnabled;
         private String previewStyle;
         private final String previewStyleDefault;
 
-
         public Builder(PreviewPreferences previewPreferences) {
             this.previewCycle = previewPreferences.getPreviewCycle();
             this.previeCyclePosition = previewPreferences.getPreviewCyclePosition();
-            this.previewPanelHeight = previewPreferences.getPreviewPanelHeight();
+            this.previewPanelDividerPosition = previewPreferences.getPreviewPanelDividerPosition();
             this.previewPanelEnabled = previewPreferences.isPreviewPanelEnabled();
             this.previewStyle = previewPreferences.getPreviewStyle();
             this.previewStyleDefault = previewPreferences.getPreviewStyleDefault();
@@ -73,16 +83,20 @@ public class PreviewPreferences {
         }
 
         public Builder withPreviewCyclePosition(int position) {
-            previeCyclePosition = position;
-            while (previeCyclePosition < 0) {
-                previeCyclePosition += previewCycle.size();
+            if (previewCycle.isEmpty()) {
+                previeCyclePosition = 0;
+            } else {
+                previeCyclePosition = position;
+                while (previeCyclePosition < 0) {
+                    previeCyclePosition += previewCycle.size();
+                }
+                previeCyclePosition %= previewCycle.size();
             }
-            previeCyclePosition %= previewCycle.size();
             return this;
         }
 
-        public Builder withPreviewPanelHeight(int previewPanelHeight) {
-            this.previewPanelHeight = previewPanelHeight;
+        public Builder withPreviewPanelDividerPosition(Number previewPanelDividerPosition) {
+            this.previewPanelDividerPosition = previewPanelDividerPosition;
             return this;
         }
 
@@ -97,7 +111,7 @@ public class PreviewPreferences {
         }
 
         public PreviewPreferences build() {
-            return new PreviewPreferences(previewCycle, previeCyclePosition, previewPanelHeight, previewPanelEnabled, previewStyle, previewStyleDefault);
+            return new PreviewPreferences(previewCycle, previeCyclePosition, previewPanelDividerPosition, previewPanelEnabled, previewStyle, previewStyleDefault);
         }
     }
 

@@ -12,37 +12,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 /**
- * The test class LayoutEntryTest test the net.sf.jabref.export.layout.LayoutEntry.
- * Indirectly the net.sf.jabref.export.layout.Layout is tested too.
+ * The test class LayoutEntryTest test the net.sf.jabref.export.layout.LayoutEntry. Indirectly the
+ * net.sf.jabref.export.layout.Layout is tested too.
  * <p/>
- * The LayoutEntry creates a human readable String assigned with HTML formatters.
- * To test the Highlighting Feature, an instance of LayoutEntry will be instantiated via Layout and LayoutHelper.
- * With these instance the doLayout() Method is called several times for each test case.
- * To simulate a search, a BibEntry will be created, which will be used by LayoutEntry.
+ * The LayoutEntry creates a human readable String assigned with HTML formatters. To test the Highlighting Feature, an
+ * instance of LayoutEntry will be instantiated via Layout and LayoutHelper. With these instance the doLayout() Method
+ * is called several times for each test case. To simulate a search, a BibEntry will be created, which will be used by
+ * LayoutEntry.
  *
- * There are five test cases:
- * - The shown result text has no words which should be highlighted.
- * - There is one word which will be highlighted ignoring case sensitivity.
- * - There are two words which will be highlighted ignoring case sensitivity.
- * - There is one word which will be highlighted case sensitivity.
- * - There are more words which will be highlighted case sensitivity.
- *
- * @author Arne
+ * There are five test cases: - The shown result text has no words which should be highlighted. - There is one word
+ * which will be highlighted ignoring case sensitivity. - There are two words which will be highlighted ignoring case
+ * sensitivity. - There is one word which will be highlighted case sensitivity. - There are more words which will be
+ * highlighted case sensitivity.
  */
 
 public class LayoutEntryTest {
 
     private BibEntry mBTE;
 
-
-    /**
-     * Initialize Preferences.
-     */
     @BeforeEach
     public void setUp() {
-
-        // create Bibtext Entry
-
         mBTE = new BibEntry();
         mBTE.setField("abstract", "In this paper, we initiate a formal study of security on Android: Google's new open-source platform for mobile devices. Tags: Paper android google Open-Source Devices");
         //  Specifically, we present a core typed language to describe Android applications, and to reason about their data-flow security properties. Our operational semantics and type system provide some necessary foundations to help both users and developers of Android applications deal with their security concerns.
@@ -68,18 +57,12 @@ public class LayoutEntryTest {
         mBTE.setField("doi", "10.1145/1554339.1554341");
     }
 
-    // helper Methods
-
     public String layout(String layoutFile, BibEntry entry) throws IOException {
         StringReader sr = new StringReader(layoutFile.replace("__NEWLINE__", "\n"));
         Layout layout = new LayoutHelper(sr, mock(LayoutFormatterPreferences.class)).getLayoutFromText();
 
         return layout.doLayout(entry, null);
     }
-
-    /*************************/
-    /****** tests Cases ******/
-    /*************************/
 
     @Test
     public void testParseMethodCalls() {
@@ -109,5 +92,4 @@ public class LayoutEntryTest {
         assertEquals("test", (LayoutEntry.parseMethodsCalls("bla(test),foo(fark)").get(0)).get(1));
         assertEquals("fark", (LayoutEntry.parseMethodsCalls("bla(test),foo(fark)").get(1)).get(1));
     }
-
 }

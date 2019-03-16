@@ -12,10 +12,11 @@ import java.util.regex.Pattern;
 
 import org.jabref.logic.importer.Importer;
 import org.jabref.logic.importer.ParserResult;
-import org.jabref.logic.util.FileType;
 import org.jabref.logic.util.OS;
+import org.jabref.logic.util.StandardFileType;
 import org.jabref.model.entry.AuthorList;
 import org.jabref.model.entry.BibEntry;
+import org.jabref.model.entry.BibtexEntryTypes;
 import org.jabref.model.entry.FieldName;
 
 /**
@@ -23,8 +24,6 @@ import org.jabref.model.entry.FieldName;
  *
  * check here for details on the format
  * http://www.nlm.nih.gov/bsd/mms/medlineelements.html
- *
- * @author vegeziel
  */
 public class MedlinePlainImporter extends Importer {
 
@@ -40,8 +39,8 @@ public class MedlinePlainImporter extends Importer {
     }
 
     @Override
-    public FileType getFileType() {
-        return FileType.MEDLINE_PLAIN;
+    public StandardFileType getFileType() {
+        return StandardFileType.MEDLINE_PLAIN;
     }
 
     @Override
@@ -210,7 +209,7 @@ public class MedlinePlainImporter extends Importer {
                 fields.put(FieldName.COMMENT, comment);
             }
 
-            BibEntry b = new BibEntry(type);
+            BibEntry b = new BibEntry(BibtexEntryTypes.getTypeOrDefault(type));
 
             // Remove empty fields:
             fields.entrySet().stream().filter(n -> n.getValue().trim().isEmpty()).forEach(fields::remove);
@@ -359,7 +358,7 @@ public class MedlinePlainImporter extends Importer {
             if (value.contains("Copyright")) {
                 int copyrightIndex = value.lastIndexOf("Copyright");
                 //remove the copyright from the field since the name of the field is copyright
-                String copyrightInfo = value.substring(copyrightIndex, value.length()).replaceAll("Copyright ", "");
+                String copyrightInfo = value.substring(copyrightIndex).replaceAll("Copyright ", "");
                 hm.put("copyright", copyrightInfo);
                 abstractValue = value.substring(0, copyrightIndex);
             } else {

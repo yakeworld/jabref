@@ -2,6 +2,7 @@ package org.jabref.logic.shared;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,7 +56,7 @@ public class DBMSSynchronizer implements DatabaseSynchronizer {
     private Connection currentConnection;
     private final Character keywordSeparator;
     private final GlobalBibtexKeyPattern globalCiteKeyPattern;
-    private FileUpdateMonitor fileMonitor;
+    private final FileUpdateMonitor fileMonitor;
 
     public DBMSSynchronizer(BibDatabaseContext bibDatabaseContext, Character keywordSeparator,
                             GlobalBibtexKeyPattern globalCiteKeyPattern, FileUpdateMonitor fileMonitor) {
@@ -132,13 +133,6 @@ public class DBMSSynchronizer implements DatabaseSynchronizer {
         }
     }
 
-    @Subscribe
-    public void listen(EntryEvent event) {
-        if (isEventSourceAccepted(event)) {
-            dbmsProcessor.notifyClients();
-        }
-    }
-
     /**
      * Sets the table structure of shared database if needed and pulls all shared entries
      * to the new local database.
@@ -154,7 +148,7 @@ public class DBMSSynchronizer implements DatabaseSynchronizer {
 
                 // This check should only be performed once on initial database setup.
                 // Calling dbmsProcessor.setupSharedDatabase() lets dbmsProcessor.checkBaseIntegrity() be true.
-                if (dbmsProcessor.checkForPre3Dot6Intergrity()) {
+                if (dbmsProcessor.checkForPare3Dot6Integrity()) {
                     throw new DatabaseNotSupportedException();
                 }
             }
@@ -182,7 +176,7 @@ public class DBMSSynchronizer implements DatabaseSynchronizer {
 
         // remove old entries locally
         removeNotSharedEntries(localEntries, idVersionMap.keySet());
-
+        List<Integer> entriesToDrag = new ArrayList<>();
         // compare versions and update local entry if needed
         for (Map.Entry<Integer, Integer> idVersionEntry : idVersionMap.entrySet()) {
             boolean match = false;
@@ -195,7 +189,7 @@ public class DBMSSynchronizer implements DatabaseSynchronizer {
                             // update fields
                             localEntry.setType(sharedEntry.get().getType(), EntryEventSource.SHARED);
                             localEntry.getSharedBibEntryData()
-                                    .setVersion(sharedEntry.get().getSharedBibEntryData().getVersion());
+                                      .setVersion(sharedEntry.get().getSharedBibEntryData().getVersion());
                             for (String field : sharedEntry.get().getFieldNames()) {
                                 localEntry.setField(field, sharedEntry.get().getField(field), EntryEventSource.SHARED);
                             }
@@ -212,11 +206,12 @@ public class DBMSSynchronizer implements DatabaseSynchronizer {
                 }
             }
             if (!match) {
-                Optional<BibEntry> bibEntry = dbmsProcessor.getSharedEntry(idVersionEntry.getKey());
-                if (bibEntry.isPresent()) {
-                    bibDatabase.insertEntry(bibEntry.get(), EntryEventSource.SHARED);
-                }
+                entriesToDrag.add(idVersionEntry.getKey());
             }
+        }
+
+        for (BibEntry bibEntry : dbmsProcessor.getSharedEntries(entriesToDrag)) {
+            bibDatabase.insertEntry(bibEntry, EntryEventSource.SHARED);
         }
     }
 
@@ -329,10 +324,10 @@ public class DBMSSynchronizer implements DatabaseSynchronizer {
     }
 
     /**
-     *  Checks whether the current SQL connection is valid.
-     *  In case that the connection is not valid a new {@link ConnectionLostEvent} is going to be sent.
+     * Checks whether the current SQL connection is valid.
+     * In case that the connection is not valid a new {@link ConnectionLostEvent} is going to be sent.
      *
-     *  @return <code>true</code> if the connection is valid, else <code>false</code>.
+     * @return <code>true</code> if the connection is valid, else <code>false</code>.
      */
     public boolean checkCurrentConnection() {
         try {
@@ -399,6 +394,7 @@ public class DBMSSynchronizer implements DatabaseSynchronizer {
         this.metaData = metaData;
     }
 
+    @Override
     public void registerListener(Object listener) {
         eventBus.register(listener);
     }

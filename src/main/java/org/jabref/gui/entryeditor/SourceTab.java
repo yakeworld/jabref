@@ -11,11 +11,12 @@ import javax.swing.undo.UndoManager;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.geometry.Point2D;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.InputMethodRequests;
 
-import org.jabref.gui.IconTheme;
+import org.jabref.gui.DialogService;
+import org.jabref.gui.icon.IconTheme;
 import org.jabref.gui.undo.CountingUndoManager;
 import org.jabref.gui.undo.NamedCompound;
 import org.jabref.gui.undo.UndoableChangeType;
@@ -26,6 +27,7 @@ import org.jabref.logic.bibtex.BibEntryWriter;
 import org.jabref.logic.bibtex.InvalidFieldValueException;
 import org.jabref.logic.bibtex.LatexFieldFormatter;
 import org.jabref.logic.bibtex.LatexFieldFormatterPreferences;
+import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.ParserResult;
 import org.jabref.logic.importer.fileformat.BibtexParser;
 import org.jabref.logic.l10n.Localization;
@@ -35,11 +37,12 @@ import org.jabref.model.database.BibDatabaseMode;
 import org.jabref.model.entry.BibEntry;
 import org.jabref.model.entry.InternalBibtexFields;
 import org.jabref.model.util.FileUpdateMonitor;
-import org.jabref.preferences.JabRefPreferences;
 
 import de.saxsys.mvvmfx.utils.validation.ObservableRuleBasedValidator;
 import de.saxsys.mvvmfx.utils.validation.ValidationMessage;
 import org.controlsfx.control.NotificationPane;
+import org.fxmisc.flowless.VirtualizedScrollPane;
+import org.fxmisc.richtext.CodeArea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,21 +51,23 @@ public class SourceTab extends EntryEditorTab {
     private static final Logger LOGGER = LoggerFactory.getLogger(SourceTab.class);
     private final LatexFieldFormatterPreferences fieldFormatterPreferences;
     private final BibDatabaseMode mode;
-    private final JabRefPreferences preferences;
     private final UndoManager undoManager;
     private final ObjectProperty<ValidationMessage> sourceIsValid = new SimpleObjectProperty<>();
     private final ObservableRuleBasedValidator sourceValidator = new ObservableRuleBasedValidator(sourceIsValid);
+    private final ImportFormatPreferences importFormatPreferences;
     private final FileUpdateMonitor fileMonitor;
+    private final DialogService dialogService;
 
-    public SourceTab(BibDatabaseContext bibDatabaseContext, CountingUndoManager undoManager, LatexFieldFormatterPreferences fieldFormatterPreferences, JabRefPreferences preferences, FileUpdateMonitor fileMonitor) {
+    public SourceTab(BibDatabaseContext bibDatabaseContext, CountingUndoManager undoManager, LatexFieldFormatterPreferences fieldFormatterPreferences, ImportFormatPreferences importFormatPreferences, FileUpdateMonitor fileMonitor, DialogService dialogService) {
         this.mode = bibDatabaseContext.getMode();
         this.setText(Localization.lang("%0 source", mode.getFormattedName()));
         this.setTooltip(new Tooltip(Localization.lang("Show/edit %0 source", mode.getFormattedName())));
-        this.setGraphic(IconTheme.JabRefIcon.SOURCE.getGraphicNode());
+        this.setGraphic(IconTheme.JabRefIcons.SOURCE.getGraphicNode());
         this.undoManager = undoManager;
         this.fieldFormatterPreferences = fieldFormatterPreferences;
-        this.preferences = preferences;
+        this.importFormatPreferences = importFormatPreferences;
         this.fileMonitor = fileMonitor;
+        this.dialogService = dialogService;
 
     }
 
@@ -74,6 +79,45 @@ public class SourceTab extends EntryEditorTab {
         return stringWriter.getBuffer().toString();
     }
 
+    /* Work around for different input methods.
+     * https://github.com/FXMisc/RichTextFX/issues/146
+     */
+    private class InputMethodRequestsObject implements InputMethodRequests {
+
+        @Override
+        public String getSelectedText() {
+            return "";
+        }
+
+        @Override
+        public int getLocationOffset(int x, int y) {
+            return 0;
+        }
+
+        @Override
+        public void cancelLatestCommittedText() {
+            return;
+        }
+
+        @Override
+        public Point2D getTextLocation(int offset) {
+            return new Point2D(0, 0);
+        }
+    }
+
+    private CodeArea createSourceEditor() {
+        CodeArea codeArea = new CodeArea();
+        codeArea.setWrapText(true);
+        codeArea.setInputMethodRequests(new InputMethodRequestsObject());
+        codeArea.setOnInputMethodTextChanged(event -> {
+            String committed = event.getCommitted();
+            if (!committed.isEmpty()) {
+                codeArea.insertText(codeArea.getCaretPosition(), committed);
+            }
+        });
+        return codeArea;
+    }
+
     @Override
     public boolean shouldShow(BibEntry entry) {
         return true;
@@ -81,27 +125,33 @@ public class SourceTab extends EntryEditorTab {
 
     @Override
     protected void bindToEntry(BibEntry entry) {
-        TextArea codeArea = new TextArea();
-        ScrollPane scrollPane = new ScrollPane(codeArea);
-        NotificationPane notificationPane = new NotificationPane(scrollPane);
-
+        CodeArea codeArea = createSourceEditor();
+        VirtualizedScrollPane<CodeArea> node = new VirtualizedScrollPane<>(codeArea);
+        NotificationPane notificationPane = new NotificationPane(node);
         notificationPane.setShowFromTop(false);
         sourceValidator.getValidationStatus().getMessages().addListener((ListChangeListener<ValidationMessage>) c -> {
             if (sourceValidator.getValidationStatus().isValid()) {
                 notificationPane.hide();
             } else {
-                sourceValidator.getValidationStatus().getHighestMessage().ifPresent(validationMessage -> notificationPane.show(validationMessage.getMessage()));
+                sourceValidator.getValidationStatus().getHighestMessage().ifPresent(validationMessage -> {
+                    notificationPane.show(validationMessage.getMessage());//this seems not working
+                    dialogService.showErrorDialogAndWait(validationMessage.getMessage());
+                });
             }
         });
         this.setContent(codeArea);
 
-        // Store source for every change in the source code
+        // Store source for on focus out event in the source code (within its text area)
         // and update source code for every change of entry field values
-        BindingsHelper.bindContentBidirectional(entry.getFieldsObservable(), codeArea.textProperty(), this::storeSource, fields -> {
+        BindingsHelper.bindContentBidirectional(entry.getFieldsObservable(), codeArea.focusedProperty(), onFocus -> {
+            if (!onFocus) {
+                storeSource(codeArea.textProperty().getValue());
+            }
+        }, fields -> {
             DefaultTaskExecutor.runAndWaitInJavaFXThread(() -> {
                 codeArea.clear();
                 try {
-                    codeArea.setText(getSourceString(entry, mode, fieldFormatterPreferences));
+                    codeArea.appendText(getSourceString(entry, mode, fieldFormatterPreferences));
                 } catch (IOException ex) {
                     codeArea.setEditable(false);
                     codeArea.appendText(ex.getMessage() + "\n\n" +
@@ -118,7 +168,7 @@ public class SourceTab extends EntryEditorTab {
             return;
         }
 
-        BibtexParser bibtexParser = new BibtexParser(preferences.getImportFormatPreferences(), fileMonitor);
+        BibtexParser bibtexParser = new BibtexParser(importFormatPreferences, fileMonitor);
         try {
             ParserResult parserResult = bibtexParser.parse(new StringReader(text));
             BibDatabase database = parserResult.getDatabase();
@@ -134,6 +184,12 @@ public class SourceTab extends EntryEditorTab {
                 } else {
                     throw new IllegalStateException("No entries found.");
                 }
+            }
+
+            if (parserResult.hasWarnings()) {
+                // put the warning into as exception text -> it will be displayed to the user
+
+                throw new IllegalStateException(parserResult.getErrorMessage());
             }
 
             NamedCompound compound = new NamedCompound(Localization.lang("source edit"));
@@ -165,7 +221,7 @@ public class SourceTab extends EntryEditorTab {
                 String newValue = field.getValue();
                 if (!Objects.equals(oldValue, newValue)) {
                     // Test if the field is legally set.
-                    new LatexFieldFormatter(preferences.getLatexFieldFormatterPreferences())
+                    new LatexFieldFormatter(fieldFormatterPreferences)
                             .format(newValue, fieldName);
 
                     compound.addEdit(new UndoableFieldChange(currentEntry, fieldName, oldValue, newValue));

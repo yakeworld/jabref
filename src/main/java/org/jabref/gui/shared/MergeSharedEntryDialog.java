@@ -7,13 +7,17 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 
+import javafx.scene.Scene;
+
 import org.jabref.gui.JabRefFrame;
+import org.jabref.gui.customjfx.CustomJFXPanel;
 import org.jabref.gui.mergeentries.MergeEntries;
 import org.jabref.logic.l10n.Localization;
 import org.jabref.model.database.BibDatabaseMode;
@@ -36,7 +40,7 @@ public class MergeSharedEntryDialog {
         this.dbmsSynchronizer = dbmsSynchronizer;
         this.localBibEntry = localBibEntry;
         this.sharedBibEntry = sharedBibEntry;
-        this.mergeDialog = new JDialog(jabRefFrame, Localization.lang("Update refused"), true);
+        this.mergeDialog = new JDialog((JFrame) null, Localization.lang("Update refused"), true);
         this.mergeEntries = new MergeEntries(sharedBibEntry, localBibEntry, Localization.lang("Shared entry"),
                 Localization.lang("Local entry"), bibDatabaseMode);
     }
@@ -64,7 +68,7 @@ public class MergeSharedEntryDialog {
         mergeInnformation.setBorder(new EmptyBorder(9, 9, 9, 9));
 
         mergeDialog.add(mergeInnformation, BorderLayout.NORTH);
-        mergeDialog.add(mergeEntries.getMergeEntryPanel(), BorderLayout.CENTER);
+        mergeDialog.add(CustomJFXPanel.wrap(new Scene(mergeEntries)), BorderLayout.CENTER);
 
         JButton mergeButton = new JButton(Localization.lang("Merge entries"));
         mergeButton.addActionListener(e -> mergeEntries());
@@ -85,7 +89,6 @@ public class MergeSharedEntryDialog {
             }
         });
 
-        mergeDialog.setLocationRelativeTo(jabRefFrame);
         mergeDialog.pack();
         mergeDialog.setVisible(true);
     }

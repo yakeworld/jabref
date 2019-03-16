@@ -37,7 +37,7 @@ import org.jabref.logic.importer.fileformat.bibtexml.Phdthesis;
 import org.jabref.logic.importer.fileformat.bibtexml.Proceedings;
 import org.jabref.logic.importer.fileformat.bibtexml.Techreport;
 import org.jabref.logic.importer.fileformat.bibtexml.Unpublished;
-import org.jabref.logic.util.FileType;
+import org.jabref.logic.util.StandardFileType;
 import org.jabref.model.database.BibDatabaseContext;
 import org.jabref.model.entry.BibEntry;
 
@@ -55,7 +55,7 @@ public class BibTeXMLExporter extends Exporter {
     private JAXBContext context;
 
     public BibTeXMLExporter() {
-        super("bibtexml", FileType.BIBTEXML_XML_ONLY.getDescription(), FileType.BIBTEXML_XML_ONLY);
+        super("bibtexml", "BibTexXML", StandardFileType.XML);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class BibTeXMLExporter extends Exporter {
     }
 
     /**
-     * Contains same logic as the {@link parse()} method, but inbook needs a special treatment, because
+     * Contains same logic as the {@link #parse(Object, BibEntry, Entry)} method, but inbook needs a special treatment, because
      * the contents of inbook are stored in a List of JAXBElements. So we first need to create
      * a JAXBElement for every field and then add it to the content list.
      */
@@ -192,33 +192,37 @@ public class BibTeXMLExporter extends Exporter {
      */
     private <T> void parse(T entryType, BibEntry bibEntry, Entry entry) {
         List<Method> declaredSetMethods = getListOfSetMethods(entryType);
-        Map<String, String> fieldMap = bibEntry.getFieldMap();
-        for (Map.Entry<String, String> entryField : fieldMap.entrySet()) {
-            String value = entryField.getValue();
+        for (Map.Entry<String, String> entryField : bibEntry.getFieldMap().entrySet()) {
             String key = entryField.getKey();
+            String value = entryField.getValue();
             for (Method method : declaredSetMethods) {
                 String methodNameWithoutSet = method.getName().replace("set", "").toLowerCase(ENGLISH);
+                if (!methodNameWithoutSet.equals(key)) {
+                    continue;
+                }
+
                 try {
-
-                    if ("year".equals(key) && key.equals(methodNameWithoutSet)) {
+                    if ("year".equals(key)) {
                         try {
-
-                            XMLGregorianCalendar calendar = DatatypeFactory.newInstance()
-                                    .newXMLGregorianCalendar(value);
+                            XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(value);
                             method.invoke(entryType, calendar);
                         } catch (DatatypeConfigurationException e) {
                             LOGGER.error("A configuration error occured");
                         }
                         break;
-                    } else if ("number".equals(key) && key.equals(methodNameWithoutSet)) {
-                        method.invoke(entryType, new BigInteger(value));
+                    } else if ("number".equals(key)) {
+                        try {
+                            method.invoke(entryType, new BigInteger(value));
+                        } catch (NumberFormatException exception) {
+                            LOGGER.warn("The value %s of the 'number' field is not an integer and thus is ignored for the export", value);
+                        }
                         break;
-                    } else if (key.equals(methodNameWithoutSet)) {
+                    } else {
                         method.invoke(entryType, value);
                         break;
                     }
                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                    LOGGER.error("Could not invoke method", e);
+                    LOGGER.error("Could not invoke method " + method.getName(), e);
                 }
             }
 

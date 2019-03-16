@@ -1,20 +1,28 @@
 package org.jabref.gui.actions;
 
-import java.awt.event.ActionEvent;
+import org.jabref.gui.DialogService;
+import org.jabref.gui.help.VersionWorker;
+import org.jabref.gui.util.TaskExecutor;
+import org.jabref.logic.util.BuildInfo;
+import org.jabref.preferences.VersionPreferences;
 
-import javax.swing.AbstractAction;
+public class SearchForUpdateAction extends SimpleCommand {
 
-import org.jabref.JabRefGUI;
-import org.jabref.logic.l10n.Localization;
+    private final BuildInfo buildInfo;
+    private final VersionPreferences versionPreferences;
+    private final DialogService dialogService;
+    private final TaskExecutor taskExecutor;
 
-public class SearchForUpdateAction extends AbstractAction {
-
-    public SearchForUpdateAction() {
-        super(Localization.lang("Check for updates"));
+    public SearchForUpdateAction(BuildInfo buildInfo, VersionPreferences versionPreferences, DialogService dialogService, TaskExecutor taskExecutor) {
+        this.buildInfo = buildInfo;
+        this.versionPreferences = versionPreferences;
+        this.dialogService = dialogService;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        JabRefGUI.checkForNewVersion(true);
+    public void execute() {
+        new VersionWorker(buildInfo.getVersion(), versionPreferences.getIgnoredVersion(), dialogService, taskExecutor)
+                .checkForNewVersionAsync(true);
     }
 }

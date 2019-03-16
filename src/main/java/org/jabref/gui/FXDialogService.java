@@ -1,27 +1,40 @@
 package org.jabref.gui;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javafx.concurrent.Task;
 import javafx.print.PrinterJob;
+import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import org.jabref.JabRefGUI;
+import org.jabref.gui.icon.IconTheme;
 import org.jabref.gui.util.DirectoryDialogConfiguration;
 import org.jabref.gui.util.FileDialogConfiguration;
+import org.jabref.gui.util.ZipFileChooser;
 import org.jabref.logic.l10n.Localization;
 
 import org.controlsfx.dialog.ExceptionDialog;
@@ -38,12 +51,71 @@ import org.controlsfx.dialog.ProgressDialog;
  */
 public class FXDialogService implements DialogService {
 
+    private final Window mainWindow;
+
+    /**
+     * @deprecated try not to initialize a new dialog service but reuse the one constructed in {@link org.jabref.gui.JabRefFrame}.
+     */
+    @Deprecated
+    public FXDialogService() {
+        this(null);
+    }
+
+    public FXDialogService(Window mainWindow) {
+        this.mainWindow = mainWindow;
+    }
+
     private static FXDialog createDialog(AlertType type, String title, String content) {
         FXDialog alert = new FXDialog(type, title, true);
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         return alert;
+    }
+
+    private static FXDialog createDialogWithOptOut(AlertType type, String title, String content,
+                                                   String optOutMessage, Consumer<Boolean> optOutAction) {
+        FXDialog alert = new FXDialog(type, title, true);
+        // Need to force the alert to layout in order to grab the graphic as we are replacing the dialog pane with a custom pane
+        alert.getDialogPane().applyCss();
+        Node graphic = alert.getDialogPane().getGraphic();
+
+        // Create a new dialog pane that has a checkbox instead of the hide/show details button
+        // Use the supplied callback for the action of the checkbox
+        alert.setDialogPane(new DialogPane() {
+
+            @Override
+            protected Node createDetailsButton() {
+                CheckBox optOut = new CheckBox();
+                optOut.setText(optOutMessage);
+                optOut.setOnAction(e -> optOutAction.accept(optOut.isSelected()));
+                return optOut;
+            }
+        });
+
+        // Fool the dialog into thinking there is some expandable content; a group won't take up any space if it has no children
+        alert.getDialogPane().setExpandableContent(new Group());
+        alert.getDialogPane().setExpanded(true);
+
+        // Reset the dialog graphic using the default style
+        alert.getDialogPane().setGraphic(graphic);
+
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        return alert;
+    }
+
+    @Override
+    public <T> Optional<T> showChoiceDialogAndWait(String title, String content, String okButtonLabel, T defaultChoice, Collection<T> choices) {
+        ChoiceDialog<T> choiceDialog = new ChoiceDialog<>(defaultChoice, choices);
+        ButtonType okButtonType = new ButtonType(okButtonLabel, ButtonBar.ButtonData.OK_DONE);
+        choiceDialog.getDialogPane().getButtonTypes().setAll(ButtonType.CANCEL, okButtonType);
+        choiceDialog.setHeaderText(title);
+        choiceDialog.setTitle(title);
+        choiceDialog.setContentText(content);
+        return choiceDialog.showAndWait();
+
     }
 
     @Override
@@ -80,6 +152,14 @@ public class FXDialogService implements DialogService {
     }
 
     @Override
+    public void showErrorDialogAndWait(String title, String content, Throwable exception) {
+        ExceptionDialog exceptionDialog = new ExceptionDialog(exception);
+        exceptionDialog.setHeaderText(title);
+        exceptionDialog.setContentText(content);
+        exceptionDialog.showAndWait();
+    }
+
+    @Override
     public void showErrorDialogAndWait(String message) {
         FXDialog alert = createDialog(AlertType.ERROR, Localization.lang("Error Occurred"), message);
         alert.showAndWait();
@@ -100,8 +180,8 @@ public class FXDialogService implements DialogService {
     }
 
     @Override
-    public boolean showConfirmationDialogAndWait(String title, String content, String okButtonLabel,
-            String cancelButtonLabel) {
+    public boolean showConfirmationDialogAndWait(String title, String content,
+                                                 String okButtonLabel, String cancelButtonLabel) {
         FXDialog alert = createDialog(AlertType.CONFIRMATION, title, content);
         ButtonType okButtonType = new ButtonType(okButtonLabel, ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButtonType = new ButtonType(cancelButtonLabel, ButtonBar.ButtonData.NO);
@@ -110,8 +190,27 @@ public class FXDialogService implements DialogService {
     }
 
     @Override
+    public boolean showConfirmationDialogWithOptOutAndWait(String title, String content,
+                                                           String optOutMessage, Consumer<Boolean> optOutAction) {
+        FXDialog alert = createDialogWithOptOut(AlertType.CONFIRMATION, title, content, optOutMessage, optOutAction);
+        alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+        return alert.showAndWait().filter(buttonType -> buttonType == ButtonType.YES).isPresent();
+    }
+
+    @Override
+    public boolean showConfirmationDialogWithOptOutAndWait(String title, String content,
+                                                           String okButtonLabel, String cancelButtonLabel,
+                                                           String optOutMessage, Consumer<Boolean> optOutAction) {
+        FXDialog alert = createDialogWithOptOut(AlertType.CONFIRMATION, title, content, optOutMessage, optOutAction);
+        ButtonType okButtonType = new ButtonType(okButtonLabel, ButtonBar.ButtonData.YES);
+        ButtonType cancelButtonType = new ButtonType(cancelButtonLabel, ButtonBar.ButtonData.NO);
+        alert.getButtonTypes().setAll(okButtonType, cancelButtonType);
+        return alert.showAndWait().filter(buttonType -> buttonType == okButtonType).isPresent();
+    }
+
+    @Override
     public Optional<ButtonType> showCustomButtonDialogAndWait(AlertType type, String title, String content,
-            ButtonType... buttonTypes) {
+                                                              ButtonType... buttonTypes) {
         FXDialog alert = createDialog(type, title, content);
         alert.getButtonTypes().setAll(buttonTypes);
         return alert.showAndWait();
@@ -119,10 +218,12 @@ public class FXDialogService implements DialogService {
 
     @Override
     public Optional<ButtonType> showCustomDialogAndWait(String title, DialogPane contentPane,
-            ButtonType... buttonTypes) {
+                                                        ButtonType... buttonTypes) {
         FXDialog alert = new FXDialog(AlertType.NONE, title);
         alert.setDialogPane(contentPane);
         alert.getButtonTypes().setAll(buttonTypes);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        alert.setResizable(true);
         return alert.showAndWait();
     }
 
@@ -132,8 +233,13 @@ public class FXDialogService implements DialogService {
     }
 
     @Override
-    public <V> void showCanceableProgressDialogAndWait(Task<V> task) {
+    public <V> void showProgressDialogAndWait(String title, String content, Task<V> task) {
         ProgressDialog progressDialog = new ProgressDialog(task);
+        progressDialog.setHeaderText(null);
+        progressDialog.setTitle(title);
+        progressDialog.setContentText(content);
+        progressDialog.setGraphic(null);
+        ((Stage) progressDialog.getDialogPane().getScene().getWindow()).getIcons().add(IconTheme.getJabRefImageFX());
         progressDialog.setOnCloseRequest(evt -> task.cancel());
         DialogPane dialogPane = progressDialog.getDialogPane();
         dialogPane.getButtonTypes().add(ButtonType.CANCEL);
@@ -153,7 +259,7 @@ public class FXDialogService implements DialogService {
     @Override
     public Optional<Path> showFileSaveDialog(FileDialogConfiguration fileDialogConfiguration) {
         FileChooser chooser = getConfiguredFileChooser(fileDialogConfiguration);
-        File file = chooser.showSaveDialog(null);
+        File file = chooser.showSaveDialog(mainWindow);
         Optional.ofNullable(chooser.getSelectedExtensionFilter()).ifPresent(fileDialogConfiguration::setSelectedExtensionFilter);
         return Optional.ofNullable(file).map(File::toPath);
     }
@@ -161,7 +267,7 @@ public class FXDialogService implements DialogService {
     @Override
     public Optional<Path> showFileOpenDialog(FileDialogConfiguration fileDialogConfiguration) {
         FileChooser chooser = getConfiguredFileChooser(fileDialogConfiguration);
-        File file = chooser.showOpenDialog(null);
+        File file = chooser.showOpenDialog(mainWindow);
         Optional.ofNullable(chooser.getSelectedExtensionFilter()).ifPresent(fileDialogConfiguration::setSelectedExtensionFilter);
         return Optional.ofNullable(file).map(File::toPath);
     }
@@ -169,14 +275,14 @@ public class FXDialogService implements DialogService {
     @Override
     public Optional<Path> showDirectorySelectionDialog(DirectoryDialogConfiguration directoryDialogConfiguration) {
         DirectoryChooser chooser = getConfiguredDirectoryChooser(directoryDialogConfiguration);
-        File file = chooser.showDialog(null);
+        File file = chooser.showDialog(mainWindow);
         return Optional.ofNullable(file).map(File::toPath);
     }
 
     @Override
     public List<Path> showFileOpenDialogAndGetMultipleFiles(FileDialogConfiguration fileDialogConfiguration) {
         FileChooser chooser = getConfiguredFileChooser(fileDialogConfiguration);
-        List<File> files = chooser.showOpenMultipleDialog(null);
+        List<File> files = chooser.showOpenMultipleDialog(mainWindow);
         return files != null ? files.stream().map(File::toPath).collect(Collectors.toList()) : Collections.emptyList();
     }
 
@@ -197,6 +303,15 @@ public class FXDialogService implements DialogService {
 
     @Override
     public boolean showPrintDialog(PrinterJob job) {
-        return job.showPrintDialog(null);
+        return job.showPrintDialog(mainWindow);
+    }
+
+    @Override
+    public Optional<Path> showFileOpenFromArchiveDialog(Path archivePath) throws IOException {
+        try (FileSystem zipFile = FileSystems.newFileSystem(archivePath, null)) {
+            return new ZipFileChooser(zipFile).showAndWait();
+        } catch (NoClassDefFoundError exc) {
+            throw new IOException("Could not instantiate ZIP-archive reader.", exc);
+        }
     }
 }

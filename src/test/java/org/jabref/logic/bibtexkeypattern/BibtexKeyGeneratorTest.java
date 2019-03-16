@@ -119,73 +119,73 @@ public class BibtexKeyGeneratorTest {
 
         Optional<BibEntry> entry0 = BibtexParser.singleFromString(
                 "@ARTICLE{kohn, author={Andreas Köning}, year={2000}}", importFormatPreferences, fileMonitor);
-        assertEquals("Koen",
+        assertEquals("Koe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Áöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Aoen",
+        assertEquals("Aoe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Éöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Eoen",
+        assertEquals("Eoe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Íöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Ioen",
+        assertEquals("Ioe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Ĺöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Loen",
+        assertEquals("Loe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Ńöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Noen",
+        assertEquals("Noe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Óöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Ooen",
+        assertEquals("Ooe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Ŕöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Roen",
+        assertEquals("Roe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Śöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Soen",
+        assertEquals("Soe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Úöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Uoen",
+        assertEquals("Uoe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Ýöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Yoen",
+        assertEquals("Yoe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Źöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Zoen",
+        assertEquals("Zoe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
     }
@@ -197,38 +197,50 @@ public class BibtexKeyGeneratorTest {
     public void testMakeLabelAndCheckLegalKeysAccentGrave() throws ParseException {
         Optional<BibEntry> entry0 = BibtexParser.singleFromString(
                 "@ARTICLE{kohn, author={Andreas Àöning}, year={2000}}", importFormatPreferences, fileMonitor);
-        assertEquals("Aoen",
+        assertEquals("Aoe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Èöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Eoen",
+        assertEquals("Eoe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Ìöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Ioen",
+        assertEquals("Ioe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Òöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Ooen",
+        assertEquals("Ooe",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
 
         entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andreas Ùöning}, year={2000}}",
                 importFormatPreferences, fileMonitor);
-        assertEquals("Uoen",
+        assertEquals("Uoe",
+                BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
+                        new BibDatabase()), true));
+
+        entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Oraib Al-Ketan}, year={2000}}",
+                importFormatPreferences, fileMonitor);
+        assertEquals("AlK",
+                BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
+                        new BibDatabase()), true));
+
+        entry0 = BibtexParser.singleFromString("@ARTICLE{kohn, author={Andrés D'Alessandro}, year={2000}}",
+                importFormatPreferences, fileMonitor);
+        assertEquals("DAl",
                 BibtexKeyGenerator.cleanKey(BibtexKeyGenerator.generateKey(entry0.get(), "auth3",
                         new BibDatabase()), true));
     }
 
     /**
-     * Tests if checkLegalKey replaces Non-ASCII chars.
-     * There are quite a few chars that should be replaced. Perhaps there is a better method than the current.
+     * Tests if checkLegalKey replaces Non-ASCII chars. There are quite a few chars that should be replaced. Perhaps
+     * there is a better method than the current.
      *
      * @see BibtexKeyGenerator#checkLegalKey(String)
      */
@@ -301,6 +313,7 @@ public class BibtexKeyGeneratorTest {
         assertEquals("", BibtexKeyGenerator.firstAuthor(""));
     }
 
+    @Test
     public void testFirstAuthorNull() {
         assertThrows(NullPointerException.class, () -> BibtexKeyGenerator.firstAuthor(null));
     }
@@ -424,6 +437,7 @@ public class BibtexKeyGeneratorTest {
         assertEquals("Newton", BibtexKeyGenerator.authIniN(AUTHOR_STRING_FIRSTNAME_INITIAL_LASTNAME_FULL_COUNT_1, 7));
     }
 
+    @Test
     public void testAuthIniNNull() {
         assertThrows(NullPointerException.class, () -> BibtexKeyGenerator.authIniN(null, 3));
     }
@@ -514,6 +528,7 @@ public class BibtexKeyGeneratorTest {
         assertEquals("", BibtexKeyGenerator.authNofMth("", 2, 4));
     }
 
+    @Test
     public void authNMThrowsNPE() {
         assertThrows(NullPointerException.class, () -> BibtexKeyGenerator.authNofMth(null, 2, 4));
     }
@@ -709,6 +724,7 @@ public class BibtexKeyGeneratorTest {
         assertEquals("", BibtexKeyGenerator.pagePrefix("43+"));
     }
 
+    @Test
     public void testPagePrefixNull() {
         assertThrows(NullPointerException.class, () -> BibtexKeyGenerator.pagePrefix(null));
     }
@@ -725,6 +741,7 @@ public class BibtexKeyGeneratorTest {
         assertEquals("43", BibtexKeyGenerator.lastPage("43+"));
     }
 
+    @Test
     public void testLastPageNull() {
         assertThrows(NullPointerException.class, () -> BibtexKeyGenerator.lastPage(null));
     }
@@ -767,28 +784,35 @@ public class BibtexKeyGeneratorTest {
      */
     @Test
     public void shortTitle() {
-        // shortTitle is getTitleWords with "3" as count
+        // shortTitle is getTitleWords with "3" as count and removed small words
         int count = 3;
         assertEquals("application migration effort",
-                BibtexKeyGenerator.getTitleWords(count, TITLE_STRING_ALL_LOWER_FOUR_SMALL_WORDS_ONE_EN_DASH));
-        assertEquals("BPEL conformance in", BibtexKeyGenerator.getTitleWords(count,
-                TITLE_STRING_ALL_LOWER_FIRST_WORD_IN_BRACKETS_TWO_SMALL_WORDS_SMALL_WORD_AFTER_COLON));
-        assertEquals("Process Viewing Patterns", BibtexKeyGenerator.getTitleWords(count, TITLE_STRING_CASED));
-        assertEquals("BPMN Conformance in",
-                BibtexKeyGenerator.getTitleWords(count, TITLE_STRING_CASED_ONE_UPPER_WORD_ONE_SMALL_WORD));
-        assertEquals("The Difference Between", BibtexKeyGenerator.getTitleWords(count,
-                TITLE_STRING_CASED_TWO_SMALL_WORDS_SMALL_WORD_AT_THE_BEGINNING));
-        assertEquals("Cloud Computing: The",
-                BibtexKeyGenerator.getTitleWords(count, TITLE_STRING_CASED_TWO_SMALL_WORDS_SMALL_WORD_AFTER_COLON));
+                BibtexKeyGenerator.getTitleWords(count,
+                        BibtexKeyGenerator.removeSmallWords(TITLE_STRING_ALL_LOWER_FOUR_SMALL_WORDS_ONE_EN_DASH)));
+        assertEquals("BPEL conformance open",
+                BibtexKeyGenerator.getTitleWords(count,
+                        BibtexKeyGenerator.removeSmallWords(TITLE_STRING_ALL_LOWER_FIRST_WORD_IN_BRACKETS_TWO_SMALL_WORDS_SMALL_WORD_AFTER_COLON)));
+        assertEquals("Process Viewing Patterns",
+                BibtexKeyGenerator.getTitleWords(count,
+                        BibtexKeyGenerator.removeSmallWords(TITLE_STRING_CASED)));
+        assertEquals("BPMN Conformance Open",
+                BibtexKeyGenerator.getTitleWords(count,
+                        BibtexKeyGenerator.removeSmallWords(TITLE_STRING_CASED_ONE_UPPER_WORD_ONE_SMALL_WORD)));
+        assertEquals("Difference Graph Based",
+                BibtexKeyGenerator.getTitleWords(count,
+                        BibtexKeyGenerator.removeSmallWords(TITLE_STRING_CASED_TWO_SMALL_WORDS_SMALL_WORD_AT_THE_BEGINNING)));
+        assertEquals("Cloud Computing: Next",
+                BibtexKeyGenerator.getTitleWords(count,
+                        BibtexKeyGenerator.removeSmallWords(TITLE_STRING_CASED_TWO_SMALL_WORDS_SMALL_WORD_AFTER_COLON)));
         assertEquals("Towards Choreography based",
-                BibtexKeyGenerator.getTitleWords(count, TITLE_STRING_CASED_TWO_SMALL_WORDS_ONE_CONNECTED_WORD));
-        assertEquals("On the Measurement",
-                BibtexKeyGenerator.getTitleWords(count, TITLE_STRING_CASED_FOUR_SMALL_WORDS_TWO_CONNECTED_WORDS));
+                BibtexKeyGenerator.getTitleWords(count, BibtexKeyGenerator.removeSmallWords(TITLE_STRING_CASED_TWO_SMALL_WORDS_ONE_CONNECTED_WORD)));
+        assertEquals("Measurement Design Time",
+                BibtexKeyGenerator.getTitleWords(count, BibtexKeyGenerator.removeSmallWords(TITLE_STRING_CASED_FOUR_SMALL_WORDS_TWO_CONNECTED_WORDS)));
     }
 
     /**
-    * Tests [camel]
-    */
+     * Tests [camel]
+     */
     @Test
     public void camel() {
         // camel capitalises and concatenates all the words of the title
@@ -935,7 +959,7 @@ public class BibtexKeyGeneratorTest {
         BibEntry entry = new BibEntry();
         entry.setField("title", "Green Scheduling of Whatever");
         assertEquals("GSo", BibtexKeyGenerator.generateKey(entry, "shorttitleINI"));
-        assertEquals("GreenSchedulingof", BibtexKeyGenerator.generateKey(entry, "shorttitle",
+        assertEquals("GreenSchedulingWhatever", BibtexKeyGenerator.generateKey(entry, "shorttitle",
                 new BibDatabase()));
     }
 
@@ -950,7 +974,7 @@ public class BibtexKeyGeneratorTest {
         database.insertEntry(entry1);
         entry2.setField("title", "Green Scheduling of Whatever");
 
-        assertEquals("GreenSchedulingof", BibtexKeyGenerator.generateKey(entry1, "shorttitle",
+        assertEquals("GreenSchedulingWhatever", BibtexKeyGenerator.generateKey(entry1, "shorttitle",
                 database));
     }
 
@@ -995,4 +1019,58 @@ public class BibtexKeyGeneratorTest {
         entry.setField("title", "The Interesting Title");
         assertEquals("theinterestingtitle", BibtexKeyGenerator.generateKey(entry, "title:lower:(_)"));
     }
+
+    @Test
+    public void generateKeyWithTitleCapitalizeModifier() throws Exception {
+        BibEntry entry = new BibEntry();
+        entry.setField("title", "the InTeresting title longer than THREE words");
+        assertEquals("TheInterestingTitleLongerThanThreeWords", BibtexKeyGenerator.generateKey(entry, "title:capitalize"));
+    }
+
+    @Test
+    public void generateKeyWithShortTitleCapitalizeModifier() throws Exception {
+        BibEntry entry = new BibEntry();
+        entry.setField("title", "the InTeresting title longer than THREE words");
+        assertEquals("InterestingTitleLonger", BibtexKeyGenerator.generateKey(entry, "shorttitle:capitalize"));
+    }
+
+    @Test
+    public void generateKeyWithTitleTitleCaseModifier() throws Exception {
+        BibEntry entry = new BibEntry();
+        entry.setField("title", "A title WITH some of The key words");
+        assertEquals("ATitlewithSomeoftheKeyWords", BibtexKeyGenerator.generateKey(entry, "title:titlecase"));
+    }
+
+    @Test
+    public void generateKeyWithShortTitleTitleCaseModifier() throws Exception {
+        BibEntry entry = new BibEntry();
+        entry.setField("title", "the InTeresting title longer than THREE words");
+        assertEquals("InterestingTitleLonger", BibtexKeyGenerator.generateKey(entry, "shorttitle:titlecase"));
+    }
+
+    @Test
+    public void generateKeyWithTitleSentenceCaseModifier() throws Exception {
+        BibEntry entry = new BibEntry();
+        entry.setField("title", "A title WITH some of The key words");
+        assertEquals("Atitlewithsomeofthekeywords", BibtexKeyGenerator.generateKey(entry, "title:sentencecase"));
+    }
+
+    @Test
+    public void generateKeyWithAuthUpperYearShortTitleCapitalizeModifier() throws Exception {
+        BibEntry entry = new BibEntry();
+        entry.setField("author", AUTHOR_STRING_FIRSTNAME_FULL_LASTNAME_FULL_COUNT_1);
+        entry.setField("year", "2019");
+        entry.setField("title", "the InTeresting title longer than THREE words");
+        assertEquals("NEWTON2019InterestingTitleLonger", BibtexKeyGenerator.generateKey(entry, "[auth:upper][year][shorttitle:capitalize]"));
+    }
+
+    @Test
+    public void generateKeyWithYearAuthUpperTitleSentenceCaseModifier() throws Exception {
+        BibEntry entry = new BibEntry();
+        entry.setField("author", AUTHOR_STRING_FIRSTNAME_FULL_LASTNAME_FULL_COUNT_3);
+        entry.setField("year", "2019");
+        entry.setField("title", "the InTeresting title longer than THREE words");
+        assertEquals("NewtonMaxwellEtAl_2019_TheInterestingTitleLongerThanThreeWords", BibtexKeyGenerator.generateKey(entry, "[authors2]_[year]_[title:capitalize]"));
+    }
+
 }

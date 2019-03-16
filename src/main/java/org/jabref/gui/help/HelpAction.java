@@ -1,11 +1,6 @@
 package org.jabref.gui.help;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,14 +8,13 @@ import java.util.stream.Stream;
 
 import javax.swing.Action;
 import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 
 import org.jabref.Globals;
-import org.jabref.gui.IconTheme;
 import org.jabref.gui.actions.MnemonicAwareAction;
+import org.jabref.gui.actions.SimpleCommand;
 import org.jabref.gui.desktop.JabRefDesktop;
+import org.jabref.gui.icon.IconTheme;
 import org.jabref.logic.help.HelpFile;
 import org.jabref.logic.l10n.Localization;
 import org.jabref.preferences.JabRefPreferences;
@@ -41,7 +35,7 @@ public class HelpAction extends MnemonicAwareAction {
 
 
     public HelpAction(String title, String tooltip, HelpFile helpPage, KeyStroke key) {
-        this(title, tooltip, helpPage, IconTheme.JabRefIcon.HELP.getSmallIcon());
+        this(title, tooltip, helpPage, IconTheme.JabRefIcons.HELP.getSmallIcon());
         putValue(Action.ACCELERATOR_KEY, key);
     }
 
@@ -53,7 +47,7 @@ public class HelpAction extends MnemonicAwareAction {
     }
 
     public HelpAction(String tooltip, HelpFile helpPage) {
-        this(Localization.lang("Help"), tooltip, helpPage, IconTheme.JabRefIcon.HELP.getSmallIcon());
+        this(Localization.lang("Help"), tooltip, helpPage, IconTheme.JabRefIcons.HELP.getSmallIcon());
     }
 
     public HelpAction(HelpFile helpPage, Icon icon) {
@@ -61,15 +55,7 @@ public class HelpAction extends MnemonicAwareAction {
     }
 
     public HelpAction(HelpFile helpPage) {
-        this(Localization.lang("Help"), Localization.lang("Help"), helpPage, IconTheme.JabRefIcon.HELP.getSmallIcon());
-    }
-
-    public JButton getHelpButton() {
-        JButton button = new JButton(this);
-        button.setText(null);
-        button.setPreferredSize(new Dimension(24, 24));
-        button.setToolTipText(getValue(Action.SHORT_DESCRIPTION).toString());
-        return button;
+        this(Localization.lang("Help"), Localization.lang("Help"), helpPage, IconTheme.JabRefIcons.HELP.getSmallIcon());
     }
 
     public static void openHelpPage(HelpFile helpPage) {
@@ -90,22 +76,26 @@ public class HelpAction extends MnemonicAwareAction {
         this.helpPage = urlPart;
     }
 
-    public JLabel getHelpLabel(String labelText) {
-        JLabel helpLabel = new JLabel("<html><u>" + labelText + "</u></html>");
-        helpLabel.setForeground(Color.BLUE);
-        helpLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        helpLabel.addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                openHelpPage(helpPage);
-            }
-        });
-        return helpLabel;
-    }
-
     @Override
     public void actionPerformed(ActionEvent e) {
         openHelpPage(helpPage);
+    }
+
+    public static SimpleCommand getMainHelpPageCommand() {
+        return new SimpleCommand() {
+            @Override
+            public void execute() {
+                openHelpPage(HelpFile.CONTENTS);
+            }
+        };
+    }
+
+    public SimpleCommand getCommand() {
+        return new SimpleCommand() {
+            @Override
+            public void execute() {
+                openHelpPage(helpPage);
+            }
+        };
     }
 }
