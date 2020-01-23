@@ -235,7 +235,80 @@ public class EndnoteImporter extends Importer {
                 } else if ("F".equals(prefix)) {
                     hm.put(InternalField.KEY_FIELD, BibtexKeyGenerator.cleanKey(val,
                             preferences.getBibtexKeyPatternPreferences().isEnforceLegalKey()));
-                }
+               } else if ("!".equals(prefix)) {
+					hm.put(StandardField.short_title, val);
+				} else if ("#".equals(prefix)) {
+					hm.put(StandardField.BeginPage, val);
+				} else if ("$".equals(prefix)) {
+					hm.put(StandardField.EndPage, val);
+				} else if ("&".equals(prefix)) {
+					hm.put(StandardField.Section, val);
+				} else if ("(".equals(prefix)) {
+					hm.put(StandardField.Original_Publication, val);
+				} else if (")".equals(prefix)) {
+					hm.put(StandardField.Reprint_Edition, val);
+				} else if ("*".equals(prefix)) {
+					hm.put(StandardField.Reviewed_Item, val);
+				} else if ("+".equals(prefix)) {
+					hm.put(StandardField.Author_Address, val);
+				} else if ("0".equals(prefix)) {
+					hm.put(StandardField.mark, val);
+				} else if ("1".equals(prefix)) {
+					hm.put(StandardField.level, val);
+				} else if ("2".equals(prefix)) {
+					hm.put(StandardField.translated_journal, val);
+				} else if ("3".equals(prefix)) {
+					hm.put(StandardField.translated_abstract, val);
+				} else if ("4".equals(prefix)) {
+					hm.put(StandardField.translated_keywords, val);
+				} else if ("6".equals(prefix)) {
+					hm.put(StandardField.Volumes_Number , val);
+				} else if ("9".equals(prefix)) {
+					hm.put(StandardField.type, val);
+				} else if ("<".equals(prefix)) {
+					hm.put(StandardField.class, val);
+				} else if ("=".equals(prefix)) {
+					hm.put(StandardField.CN, val);
+				} else if (">".equals(prefix)) {
+					hm.put(StandardField.file, val);
+				} else if ("?".equals(prefix)) {
+					hm.put(StandardField.subsidiary_author, val);
+				} else if ("@".equals(prefix)) {
+					hm.put(StandardField.issn, val);
+				} else if ("B".equals(prefix)) {
+					hm.put(StandardField.Secondary_Title, val);
+				} else if ("G".equals(prefix)) {
+					hm.put(StandardField.language, val);
+				} else if ("H".equals(prefix)) {
+					hm.put(StandardField.Translated_Author, val);
+				} else if ("J".equals(prefix)) {
+					hm.put(StandardField.journal, val);
+				} else if ("L".equals(prefix)) {
+					hm.put(StandardField.call_number, val);
+				} else if ("M".equals(prefix)) {
+					hm.put(StandardField.accession_number, val);
+				} else if ("O".equals(prefix)) {
+					hm.put(StandardField.alternate_title, val);
+				} else if ("Q".equals(prefix)) {
+					hm.put(StandardField.Translated_Title, val);
+				} else if ("S".equals(prefix)) {
+					hm.put(StandardField.Tertiary_Title, val);
+				} else if ("W".equals(prefix)) {
+					hm.put(StandardField.database, val);
+				} else if ("Y".equals(prefix)) {
+					hm.put(StandardField.Tertiary_Author , val);
+				} else if ("Z".equals(prefix)) {
+					hm.put(StandardField.notes, val);
+				} else if ("[".equals(prefix)) {
+					hm.put(StandardField.urldate, val);
+				} else if ("]".equals(prefix)) {
+					hm.put(StandardField.JumpPage, val);
+				} else if ("^".equals(prefix)) {
+					hm.put(StandardField.caption, val);
+				} else if ("~".equals(prefix)) {
+					hm.put(StandardField.department, val);
+
+				}
             }
 
             // For Edited Book, EndNote puts the editors in the author field.
