@@ -1,0 +1,76 @@
+name: Build JabKit Native
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  build-jabkit:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-15]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: 'true'
+          show-progress: 'false'
+
+      - uses: ./.github/actions/setup-gradle
+
+      - name: Set up Liberica NIK (native-image)
+        uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: 'liberica'
+          java-package: 'jdk+fx'
+          java-version: '25'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build JabKit native binary
+        run: gradle :jabkit:nativeCompile
+
+      - name: Upload JabKit native binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: jabkit-${{ matrix.os }}
+          path: jabkit/build/native/nativeCompile/
+          if-no-files-found: error
+
+      - name: Package binary for release
+        if: github.event_name == 'release'
+        run: |
+          cd jabkit/build/native/nativeCompile/
+          if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
+            tar czf /tmp/jabkit-linux-x86_64.tar.gz jabkit
+          else
+            tar czf /tmp/jabkit-macos-aarch64.tar.gz jabkit
+          fi
+
+      - name: Upload release asset
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
+            gh release upload ${{ github.event.release.tag_name }} /tmp/jabkit-linux-x86_64.tar.gz
+          else
+            gh release upload ${{ github.event.release.tag_name }} /tmp/jabkit-macos-aarch64.tar.gz
+          fi
